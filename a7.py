@@ -37,6 +37,115 @@ Author: Albert Ganut
 
 from sys import flags
 import math
+import os
+
+def calculate_SSD(text):
+
+    text = text.upper()
+    letter_counts = {}
+    total_letters = 0
+
+    for letter in text:
+
+        if letter.isalpha():
+            if letter not in letter_counts:
+                letter_counts[letter] = 0
+
+            letter_counts[letter] += 1
+            total_letters += 1
+
+    distribution = []
+
+    if total_letters == 0:
+
+        return distribution
+
+    sorted_letters_counts = sorted(letter_counts.values(), reverse=True)
+
+    for count in sorted_letters_counts:
+        
+        prob = count / total_letters
+        distribution.append(prob)
+
+    return distribution
+
+
+def calculate_SSD_distance(text1, text2):
+
+    distance = 0.0
+    length = max(len(text1), len(text2))
+
+    for i in range(length):
+        
+        text1_prob = 0.0
+        text2_prob = 0.0
+
+        if i < len(text1):
+            text1_prob = text1[i]
+
+        if i < len(text2):
+            text2_prob = text2[i]
+
+        prob_difference = text1_prob - text2_prob
+        distance += prob_difference ** 2
+
+    return distance
+
+def calculate_DPD(text):
+
+    text = text.upper()
+    words = text.split()
+
+    pattern_counts = {}
+
+    for word in words:
+
+        letter_counts = {}
+
+        for letter in word:
+
+            if letter.isalpha():
+                if letter not in letter_counts:
+                    letter_counts[letter] = 0
+
+                letter_counts[letter] += 1
+
+        sorted_counts = sorted(letter_counts.values(), reverse=True)
+        pattern = tuple(sorted_counts)
+
+        if pattern not in pattern_counts:
+            pattern_counts[pattern] = 0
+
+        pattern_counts[pattern] += 1
+
+    distribution = {}
+    total_words = len(words)
+
+    if total_words == 0:
+
+        return distribution
+
+    for pattern in pattern_counts:
+
+        distribution[pattern] = pattern_counts[pattern] / total_words
+
+    return distribution
+
+def calculate_DPD_distance(text1, text2):
+    
+    all_patterns = set(text1.keys())
+    all_patterns.update(text2.keys())
+
+    distance = 0.0
+
+    for pattern in all_patterns:
+        prob1 = text1.get(pattern, 0.0)
+        prob2 = text2.get(pattern, 0.0)
+
+        prob_difference = prob1 - prob2
+        distance += prob_difference ** 2
+
+    return distance
 
 def cliSSD(ciphertext: str, files):
     """
@@ -46,7 +155,20 @@ def cliSSD(ciphertext: str, files):
     Returns:
         dict
     """
-    raise NotImplementedError()
+
+    ciphertext_distribution = calculate_SSD(ciphertext)
+    distances = {}
+
+    for filename in files:
+        with open(filename, "r") as file:
+            sample_text = file.read()
+
+        sample_distribution = calculate_SSD(sample_text)
+
+        distance = calculate_SSD_distance(ciphertext_distribution, sample_distribution)
+        distances[filename] = distance
+
+    return distances    
 
 def cliDPD(ciphertext: str, files):
     """
