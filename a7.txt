@@ -1,2 +1,5 @@
-Language: ____
-Reason: ____
+Language: English
+Reason: SSD correctly chose it only 1/5 times (it was mistaken as bg, es, and it twice) because SSD relies on sorted letter 
+        frequencies for a whole text rather than word structures, meaning that English had similar sorted letter frequencies to those other languages. 
+        On the other hand, DPD correctly identified 5/5 times. DPD looks at word lengths and word patterns (e.g., "Ender" would 
+        have a (2, 1, 1, 1) pattern) which are more unique to each language, helping it match more accurately. 
