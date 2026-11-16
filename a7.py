@@ -178,6 +178,8 @@ def cliSSD(ciphertext: str, files):
     ciphertext_distribution = calculate_SSD(ciphertext)
     distances = {}
 
+    # iterates through all the files, calculates their SSD, calculates the distance between the ciphertext's SSD and the sample text's SSD, and then adds that value to the distances dictionary
+    # with the filename as the key
     for filename in files:
 
         sample_text = read_text(filename)
@@ -196,6 +198,8 @@ def cliDPD(ciphertext: str, files):
     Returns:
         dict
     """
+
+    # logic is similar --> calculates the ciphertext's DPD instead of of SSD
     ciphertext_distribution = calculate_DPD(ciphertext)
     distances = {}
 
@@ -220,29 +224,35 @@ def cliSSDTest(ciphertext_files, sampletext_files):
 
     predictions = {}
 
+    # if there are no ciphertext files, then it just returns an empty dictionary
     if len(ciphertext_files) == 0:
 
         return predictions
 
+    # if there are no sample text files, then it raises a ValueError because it needs at least one sample text file to compare againsts
     if len(sampletext_files) == 0:
 
         raise ValueError("You need at least one sample text file!")
 
-    sample_distributions = {}
+    sample_distributions = {} # this dictionary will store each sample file's SSD value
 
+    # iterates through al the sample files. reads them, and calculates their SSD, and stores that value in the sample_distributions dictionary with the filename as the key
     for sample_file in sampletext_files:    
 
         sample_text = read_text(sample_file)
         sample_distributions[sample_file] = calculate_SSD(sample_text)
 
+    # similarly, it iterates through all the ciphertext files, reads them, and calculates their SSD 
     for ciphertext_file in ciphertext_files:    
 
         ciphertext = read_text(ciphertext_file)
         ciphertext_distribution = calculate_SSD(ciphertext) 
 
-        smallest_distance = float("inf")
+        smallest_distance = float("inf") # we say that infinity is the smallest distance to begin with so that the first distance calculated will always be smaller than it
         best_match = None
 
+        # additionally, it iterates through all the sample files, finds the sample file with the smallest distance to the current ciphertext file, and stores that sample file's name in the 
+        # predictions dictionary with the ciphertext file's name as the key
         for sample_file in sampletext_files:
 
             sample_distribution = sample_distributions[sample_file]
@@ -250,7 +260,7 @@ def cliSSDTest(ciphertext_files, sampletext_files):
 
             if distance < smallest_distance:
                 smallest_distance = distance
-                best_match = sample_file
+                best_match = sample_file # sets the best match to the current sample file if its distance is smaller than the smallest distance found so far
 
         predictions[ciphertext_file] = best_match
 
@@ -265,6 +275,7 @@ def cliDPDTest(ciphertext_files, sampletext_files):
         dict
     """
 
+    # the logic for cliDPDTest is similar to cliSSDTest
     predictions = {}
 
     if len(ciphertext_files) == 0:
@@ -314,20 +325,25 @@ def generateMapping(dictionary: dict):
 
     mapping = {}
 
+    # iterates through all the ciphertext files in the dictionary, gets the actual language of the ciphertext file and the predicted language of the sample file, and
+    # then adds that information to the mapping dictionary
     for ciphertext_file in dictionary:
 
-        sample_file = dictionary[ciphertext_file]
+        sample_file = dictionary[ciphertext_file] # gets the sample file that was predicted to be closest to the current ciphertext file
 
-        actual_file = os.path.basename(ciphertext_file)
-        actual_name = os.path.splitext(actual_file)[0]  
-        actual_language = actual_name.split("_")[1]
+        # getting the information for the actual language that the ciphertext is in
+        actual_file = os.path.basename(ciphertext_file) # removes the directory path, leaving jsut the file name (e.g., ciphertext_bg_1.txt)
+        actual_name = os.path.splitext(actual_file)[0] # finds the very last period and splits it at that, separating the file name ([0]) from the file extension ([1]) ((e.g., "hi.tar.gz" --> ["hi.tar", "gz"]))
+        actual_language = actual_name.split("_")[1] # splits the file name at the underscore (e.g., "ciphertext_bg_1" --> ["ciphertext", "bg", "1"]) --> "bg" ([1]) is the language code
 
+        # the same logic is applied to the sample file to get the predicted language
         predicted_file = os.path.basename(sample_file)
         predicted_name = os.path.splitext(predicted_file)[0]
         predicted_language = predicted_name.split("_")[1]
 
         language_pair = (actual_language, predicted_language)
 
+        # if the language pair isn't in the mapping, then it adds it with a count of 0 and increments the count by 1. If it is already in the mapping, then it just increments the count by 1
         if language_pair not in mapping:
             mapping[language_pair] = 0
 
